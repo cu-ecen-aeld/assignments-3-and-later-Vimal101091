@@ -10,13 +10,13 @@
 bool do_system(const char *cmd)
 {
 
-/*
- * TODO  add your code here
- *  Call the system() function with the command set in the cmd
- *   and return a boolean true if the system() call completed with success
- *   or false() if it returned a failure
-*/
+    // Run the system command
+    int ret = system(cmd);
 
+    if (ret == -1) {
+        return false;
+    }
+    
     return true;
 }
 
@@ -38,30 +38,41 @@ bool do_exec(int count, ...)
 {
     va_list args;
     va_start(args, count);
-    char * command[count+1];
-    int i;
-    for(i=0; i<count; i++)
-    {
+
+    char *command[count + 1];
+    for (int i = 0; i < count; i++) {
         command[i] = va_arg(args, char *);
     }
     command[count] = NULL;
-    // this line is to avoid a compile warning before your implementation is complete
-    // and may be removed
-    command[count] = command[count];
-
-/*
- * TODO:
- *   Execute a system command by calling fork, execv(),
- *   and wait instead of system (see LSP page 161).
- *   Use the command[0] as the full path to the command to execute
- *   (first argument to execv), and use the remaining arguments
- *   as second argument to the execv() command.
- *
-*/
 
     va_end(args);
 
-    return true;
+    pid_t pid = fork();
+    if (pid < 0) {
+        printf("fork failed: %s\n", strerror(errno));
+        return false;
+    }
+
+    if (pid == 0) {
+        // child
+        execv(command[0], command);
+        printf("execv failed: %s\n", strerror(errno));
+        _exit(1);
+    } else {
+        // parent
+        int status;
+        if (waitpid(pid, &status, 0) == -1) {
+            printf("waitpid failed: %s\n", strerror(errno));
+            return false;
+        }
+
+        if (WIFEXITED(status)) {
+            return WEXITSTATUS(status) == 0;
+        } else {
+            printf("Child did not exit normally\n");
+            return false;
+        }
+    }
 }
 
 /**
@@ -71,29 +82,60 @@ bool do_exec(int count, ...)
 */
 bool do_exec_redirect(const char *outputfile, int count, ...)
 {
-    va_list args;
+     va_list args;
     va_start(args, count);
-    char * command[count+1];
+
+    char *command[count + 1];
     int i;
-    for(i=0; i<count; i++)
-    {
+    for (i = 0; i < count; i++) {
         command[i] = va_arg(args, char *);
     }
     command[count] = NULL;
-    // this line is to avoid a compile warning before your implementation is complete
-    // and may be removed
-    command[count] = command[count];
-
-
-/*
- * TODO
- *   Call execv, but first using https://stackoverflow.com/a/13784315/1446624 as a refernce,
- *   redirect standard out to a file specified by outputfile.
- *   The rest of the behaviour is same as do_exec()
- *
-*/
 
     va_end(args);
 
-    return true;
+    pid_t pid = fork();
+    if (pid < 0) {
+        printf("fork failed: %s\n", strerror(errno));
+        return false;
+    }
+
+    if (pid == 0) {
+        // Child process: Redirect stdout to the output file
+        int fd = open(outputfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (fd < 0) {
+            printf("open failed: %s\n", strerror(errno));
+            _exit(1);
+        }
+
+        if (dup2(fd, STDOUT_FILENO) < 0) {
+            printf("dup2 failed: %s\n", strerror(errno));
+            close(fd);
+            _exit(1);
+        }
+
+        close(fd); 
+
+        // Execute the command
+        execv(command[0], command);
+
+        // execv failed
+        printf("execv failed: %s\n", strerror(errno));
+        _exit(1);
+    } else {
+        // Parent process: wait for child to finish
+        int status;
+        if (waitpid(pid, &status, 0) == -1) {
+            printf("waitpid failed: %s\n", strerror(errno));
+            return false;
+        }
+
+        if (WIFEXITED(status)) {
+            int exit_code = WEXITSTATUS(status);
+            return exit_code == 0;
+        } else {
+            printf("Child did not exit normally\n");
+            return false;
+        }
+    }
 }
