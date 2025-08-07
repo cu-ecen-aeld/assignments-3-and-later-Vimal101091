@@ -1,4 +1,4 @@
-#!/bin/sh
+﻿#!/bin/sh
 # Tester script for assignment 1 and assignment 2
 # Author: Siddhant Jajoo
 
@@ -11,7 +11,6 @@ WRITEDIR=/tmp/aeld-data
 
 # Config files now expected under /etc/finder-app/conf (Buildroot layout)
 username=$(cat /etc/finder-app/conf/username.txt)
-assignment=$(cat /etc/finder-app/conf/assignment.txt)
 
 # Resolve writer and finder.sh from $PATH
 WRITER_SCRIPT=$(which writer)
@@ -38,6 +37,8 @@ echo "Writing ${NUMFILES} files containing string ${WRITESTR} to ${WRITEDIR}"
 
 rm -rf "${WRITEDIR}"
 
+assignment=$(cat /etc/finder-app/conf/assignment.txt)
+
 if [ "$assignment" != "assignment1" ]
 then
     mkdir -p "$WRITEDIR"
@@ -59,6 +60,8 @@ done
 $FINDER_SCRIPT "$WRITEDIR" "$WRITESTR" > /tmp/assignment4-result.txt
 
 OUTPUTSTRING=$($FINDER_SCRIPT "$WRITEDIR" "$WRITESTR")
+
+finder.sh "$WRITEDIR" "$WRITESTR" > /tmp/assignment4-result.txt
 
 # remove temporary directories
 rm -rf /tmp/aeld-data
