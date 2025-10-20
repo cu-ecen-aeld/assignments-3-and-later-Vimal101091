@@ -1,0 +1,33 @@
+#!/bin/sh
+# /etc/init.d/S99aesdsocket
+# Start/stop script for aesdsocket daemon
+
+DAEMON=/usr/bin/aesdsocket
+DAEMON_NAME=aesdsocket
+PIDFILE=/var/run/${DAEMON_NAME}.pid
+DAEMON_OPTS="-d"
+
+case "$1" in
+  start)
+    echo "Starting ${DAEMON_NAME}..."
+    start-stop-daemon --start --background --make-pidfile --pidfile ${PIDFILE} \
+      --exec ${DAEMON} -- ${DAEMON_OPTS}
+    ;;
+  stop)
+    echo "Stopping ${DAEMON_NAME}..."
+    start-stop-daemon --stop --pidfile ${PIDFILE} --retry 5
+    rm -f ${PIDFILE}
+    ;;
+  restart)
+    $0 stop
+    sleep 1
+    $0 start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+    ;;
+esac
+
+exit 0
+
