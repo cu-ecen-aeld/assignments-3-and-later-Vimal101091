@@ -1,7 +1,7 @@
 ﻿# Use the compiler passed by Buildroot (TARGET_CC). Fallback to gcc if not set.
 CC ?= $(TARGET_CC)
 
-CFLAGS += -Wall -Werror -g
+CFLAGS += -Wall -Werror -g  -pthread
 
 TARGET = aesdsocket
 SRC = aesdsocket.c
