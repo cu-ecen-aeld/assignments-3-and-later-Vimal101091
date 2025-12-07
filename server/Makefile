@@ -1,7 +1,7 @@
-﻿# Use the compiler passed by Buildroot (TARGET_CC). Fallback to gcc if not set.
-CC ?= $(TARGET_CC)
+﻿CC ?= $(TARGET_CC)
 
-CFLAGS += -Wall -Werror -g  -pthread
+CFLAGS += -Wall -Werror -g -pthread
+LDFLAGS ?=
 
 TARGET = aesdsocket
 SRC = aesdsocket.c
@@ -9,7 +9,7 @@ SRC = aesdsocket.c
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) $(SRC)
 
 clean:
 	rm -f $(TARGET)
